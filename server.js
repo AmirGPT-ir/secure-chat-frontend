@@ -1,54 +1,47 @@
-const express = require("express");
-const { Pool } = require("pg");
-const cors = require("cors");
+const express = require('express');
+const { Pool } = require('pg');
+const cors = require('cors');
 
 const app = express();
+// افزایش حجم مجاز برای ارسال عکس و فایل
+app.use(express.json({ limit: '50mb' }));
 app.use(cors());
-app.use(express.json());
 
 const pool = new Pool({
     user: 'postgres',
-    host: 'services.irn3.chabokan.net', 
+    host: 'services.irn3.chabokan.net',
     database: 'anthony',
-    password: 'kCu1QWZtGZeOExqC',
+    password: 'kCu1QWZtGZeOExqC', // حتما رمز خودت رو بذار
     port: 34341,
-    ssl: false 
+    ssl: false
 });
 
-
-app.get("/", (req, res) => {
-  res.send("Secure chat backend running");
+// مسیر ارسال پیام
+app.post('/send', async (req, res) => {
+    const { sender, content, file_data, file_name, type } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO secure_messages (sender, content, file_data, file_name, type) VALUES ($1, $2, $3, $4, $5)',
+            [sender, content || null, file_data || null, file_name || null, type]
+        );
+        res.status(200).send({ status: 'ok' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err.message);
+    }
 });
 
-app.get("/messages", async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT * FROM secure_messages ORDER BY id ASC"
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("error");
-  }
-});
-
-app.post("/send", async (req, res) => {
-  const { sender, content } = req.body;
-
-  try {
-    await pool.query(
-      "INSERT INTO secure_messages(sender,content) VALUES($1,$2)",
-      [sender, content]
-    );
-    res.json({ status: "ok" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("error");
-  }
+// مسیر دریافت پیام‌ها
+app.get('/messages', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM secure_messages ORDER BY created_at ASC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
-  console.log("server started");
+    console.log(`Server running on port ${PORT}`);
 });
