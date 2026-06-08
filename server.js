@@ -7,13 +7,14 @@ app.use(cors());
 app.use(express.json());
 
 const pool = new Pool({
-  user: "postgres",
-  host: "services.irn3.chabokan.net",
-  database: "anthony",
-  password: "PASSWORD_SHOMA",
-  port: 34341,
-  ssl: false
+    user: 'postgres',
+    host: 'services.irn3.chabokan.net', 
+    database: 'anthony',
+    password: 'kCu1QWZtGZeOExqC',
+    port: 34341,
+    ssl: false 
 });
+
 
 app.get("/", (req, res) => {
   res.send("Secure chat backend running");
